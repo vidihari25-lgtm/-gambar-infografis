@@ -3,7 +3,7 @@ import google.generativeai as genai
 import json
 
 # ==========================================
-# Konfigurasi Halaman & API
+# Konfigurasi Halaman
 # ==========================================
 st.set_page_config(page_title="Power Tools Kreator", page_icon="⚡", layout="wide")
 
@@ -14,10 +14,18 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# Sidebar & Pengaturan
+# Sidebar & Pengaturan Keamanan API
 # ==========================================
 st.sidebar.title("⚙️ Pengaturan Sistem")
-api_key = st.sidebar.text_input("Masukkan API Key Gemini Anda:", type="password", help="Wajib diisi agar AI bisa bekerja.")
+
+# Sistem Keamanan Ganda: Coba ambil dari rahasia server dulu
+try:
+    # Membaca dari Streamlit Secrets (di Cloud) atau folder .streamlit/secrets.toml (di lokal)
+    API_KEY = st.secrets["GEMINI_API_KEY"]
+    st.sidebar.success("✅ API Key sistem terhubung aman.")
+except (KeyError, FileNotFoundError):
+    # Jika tidak ditemukan rahasia, munculkan form input manual
+    API_KEY = st.sidebar.text_input("Masukkan API Key Gemini Anda:", type="password", help="Wajib diisi agar AI bisa bekerja.")
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("👨‍💻 **Dev: VDMotionStudio**")
@@ -50,11 +58,11 @@ UKURAN_PROMPT = {
 # Fungsi Pemanggil AI
 # ==========================================
 def generate_json_from_gemini(prompt_instruksi):
-    if not api_key:
-        st.error("⚠️ Silakan masukkan API Key Gemini di sidebar terlebih dahulu.")
+    if not API_KEY:
+        st.error("⚠️ API Key belum dimasukkan. Silakan cek pengaturan di sidebar.")
         return None
         
-    genai.configure(api_key=api_key)
+    genai.configure(api_key=API_KEY)
     model = genai.GenerativeModel(
         'gemini-2.5-flash', 
         generation_config={"response_mime_type": "application/json"}
